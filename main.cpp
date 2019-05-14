@@ -1,5 +1,4 @@
 /*
- * Need to fix spaceship size
  * finish bullet
  * finish comet
  * create library
@@ -19,27 +18,16 @@ int size = 16; // num of pixels
 int w = size * num_horiBox; // pixel in width
 int h = size * num_vertBox; // pixel in height
 
-// create the shipw
 int direction;
 bool shoot = false;
 
-// Ship
+// Building the ship
+
 struct spaceship
 {
-    int x = w, y = h - size;
-    //y = h - size;
+    int x, y = h - size;
 
 }ship;
-
-struct comet
-{
-    int x,y;
-}obstacle;
-
-struct gun
-{
-    int x,y;
-}projectile;
 
 // moving the ship
 void move ()
@@ -60,38 +48,62 @@ void move ()
 
 
     // Boundary Checking ship as hits screen end, cannot pass
-    if (ship.x > num_horiBox)
-        ship.x = num_horiBox;
+    if (ship.x + (4* size) > w)
+        ship.x = w - (3 * size);
     if (ship.x < 0)
         ship.x = 0;
 
 }
 
+// Building the comet
+
+struct comet
+{
+    int x,y;
+
+}obstacle;
+
+void newComet()
+{
+    int random = rand() % num_horiBox;
+    random *= size;
+
+    obstacle.x = random;
+    obstacle.y = 0;
+}
+
+// Building the bullet
+
+struct gun
+{
+    int x, y;
+
+}projectile;
+
 // Set the initial bullet position to ship's x and y
 void bulletFired ()
 {
-    projectile.x = ship.x;
-    projectile.y = ship.y;
+    projectile.x = ship.x + size;
+    projectile.y = ship.y - size;
 
 }
 
-bool continueBullet ()
+
+int continueBullet ()
 {
-    projectile.y -= 1;
+    projectile.y -= 16;
 
     if ((projectile.x == obstacle.x) && (projectile.y == obstacle.y)) // If comet gets hit
     {
-       // destroyComet();
-        return false;
-    } else if ((projectile.y < 0)){
-        return false;
-    } else {
-        return true;
+        newComet();
+        return 1;
+
+    } else if ((projectile.y < 0)){ // if projectile reaches the end of the screen
+        return 2;
+
+    } else { // if nothing happens to to projectile
+        return 3;
     }
-}
-
-void destroyComet(){
-
 }
 
 int main ()
@@ -116,11 +128,12 @@ int main ()
     sf::Sprite bullet(t4);
 
     //***NEW*** initially place food somewhere on screen
-    obstacle.x = 10;
-    obstacle.y = 10;
+    newComet();
 
     sf::Clock clock;
     float timer = 0.0f, delay = 0.1f;
+
+    int updateBullet;
 
     // The amount of times it takes to go through the while loop if your frame rate
     while (window.isOpen())
@@ -153,6 +166,18 @@ int main ()
         {
             timer = 0; // reset time
             move(); // move snake one forward
+
+
+            if (shoot == true)
+            {
+                updateBullet = continueBullet();
+
+                // If the bullet encounters something, can shoot again
+                if (updateBullet == 1 || updateBullet == 2)
+                {
+                    shoot = false;
+                }
+            }
         }
 
         // Draw in window
@@ -182,6 +207,8 @@ int main ()
         if (shoot == true)
         {
 
+            bullet.setPosition (projectile.x, projectile.y);
+            window.draw(bullet);
         }
 
         /*
