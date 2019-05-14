@@ -22,6 +22,11 @@ int h = size * num_vertBox; // pixel in height
 int direction;
 bool shoot = false;
 
+void endGame()
+{
+
+}
+
 // Building the ship
 
 struct spaceship
@@ -31,7 +36,7 @@ struct spaceship
 }ship;
 
 // moving the ship
-void move ()
+void moveShip ()
 {
 
     // If user presses left
@@ -73,6 +78,17 @@ void newComet()
     obstacle.y = 0;
 }
 
+void moveComet ()
+{
+    obstacle.y +=8;
+
+    // If comet reaches the bottom
+    if (obstacle.y > h)
+    {
+        newComet();
+    }
+}
+
 // Building the bullet
 
 struct gun
@@ -89,15 +105,21 @@ void bulletFired ()
 
 }
 
-int continueBullet ()
+int moveBullet ()
 {
-    projectile.y -= 16;
+    projectile.y -= 32;
 
-    if ((projectile.x == obstacle.x) && (projectile.y == obstacle.y)) // If bullet hit comet
+    // Bullet and comet are moving at diffrent speeds, so need to adjust for the x's only appearing to be equal
+    // by facoring in a range for the y value
+    if (projectile.x == obstacle.x) // If bullet hit comet
     {
-        newComet();
-        return 1;
-
+        if ((projectile.y == obstacle.y) || ( (projectile.y - 16 <= obstacle.y) && (obstacle.y <= projectile.y + 16 ) ))
+        {
+            newComet();
+            return 1;
+        } else {
+            return 3;
+        }
     } else if ((projectile.y < 0)){ // if projectile reaches the end of the screen
         return 2;
 
@@ -127,7 +149,7 @@ int main ()
     sf::Sprite comet(t3);
     sf::Sprite bullet(t4);
 
-    //***NEW*** initially place food somewhere on screen
+    // Put comet somewhere
     newComet();
 
     sf::Clock clock;
@@ -156,7 +178,6 @@ int main ()
         // Control for ship by user
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && shoot == false) // Press up to shoot
         {
-            std::cout << "Bullet Fired" << std::endl;
             shoot = true;
             bulletFired();
         }
@@ -166,26 +187,22 @@ int main ()
         if (timer > delay)
         {
             timer = 0; // reset time
-            move(); // move ship 16 pixels forward or backward
+            moveShip(); // move ship 16 pixels forward or backward
 
 
             if (shoot == true)
             {
-                std::cout << "Shoot == true" << std::endl;
-                std::cout << "Ship x = " << ship.x << ", bullet x = " << projectile.x << ", bullet y = " << projectile.y<< std::endl;
-                updateBullet = continueBullet();
-                std::cout << "Ship x = " << ship.x << ", new bullet x = " << projectile.x << ", new bullet y = " << projectile.y<< std::endl;
+
+                updateBullet = moveBullet();
 
                 // If the bullet encounters something, can shoot again
                 if (updateBullet == 1 || updateBullet == 2)
                 {
                     shoot = false;
                 }
-                std::cout << "If shoot statement worked" << std::endl;
-            } else {
-                std::cout << "Error in shoot statment" << std::endl;
-
             }
+
+            moveComet(); // move comet down 16 pixels
         }
 
         // Draw in window
@@ -213,21 +230,28 @@ int main ()
         // Draw bullet
         if (shoot == true)
         {
-            std::cout << "Should draw" << std::endl;
-
             bullet.setPosition (projectile.x, projectile.y);
             window.draw(bullet);
-        } else {
-            std::cout << "Error in draw bullet if statement" << std::endl;
         }
 
-        /*
-
-        //***NEW*** 3rd: Draw Fruit
-        comet.setPosition(food.x*size, food.y*size);
+       // Draw comet
+        comet.setPosition(obstacle.x, obstacle.y);
         window.draw(comet);
 
-        */
+        // Work out kinks to display game over
+        /*
+        sf::Text finalMessage;
+
+        finalMessage.setString("Game Over");
+        finalMessage.setCharacterSize(300); // in pixels, not points!
+        finalMessage.setFillColor(sf::Color::Black);
+        finalMessage.setStyle(sf::Text::Bold);
+        finalMessage.setPosition(200, 200);
+
+        window.draw(finalMessage);
+
+         */
+
 
         window.display();
 
