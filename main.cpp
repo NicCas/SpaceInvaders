@@ -109,8 +109,8 @@ int moveBullet ()
 {
     projectile.y -= 32;
 
-    // Bullet and comet are moving at diffrent speeds, so need to adjust for the x's only appearing to be equal
-    // by facoring in a range for the y value
+    // Bullet and comet are moving at different speeds, so need to adjust for the x's only appearing to be equal
+    // by factoring in a range for the y value
     if (projectile.x == obstacle.x) // If bullet hit comet
     {
         if ((projectile.y == obstacle.y) || ( (projectile.y - 16 <= obstacle.y) && (obstacle.y <= projectile.y + 16 ) ))
@@ -140,7 +140,7 @@ int main ()
     sf::Texture t1, t2, t3, t4;
     t1.loadFromFile("images/blue.jpg");
     t2.loadFromFile("images/red.png");
-    t3.loadFromFile("images/green.png");
+    t3.loadFromFile("images/brown.png");
     t4.loadFromFile("images/white.png");
 
     // Sprite has physical dimensions
