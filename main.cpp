@@ -1,37 +1,27 @@
-/*
- * finish bullet
- * finish comet
- * create library
-*/
-
-
 // Final game
 
 #include <SFML/Graphics.hpp>
 #include <time.h>
 #include<iostream>
+#include <string>
 
-// sf = std for this library
 
 // globals dimension for window
-int num_vertBox = 30, num_horiBox = 50;
-int size = 16; // num of pixels
-int w = size * num_horiBox; // pixel in width
-int h = size * num_vertBox; // pixel in height
+int num_vertBox = 30, num_horiBox = 40;
+int pixelSize = 16; // num of pixels
+int w = pixelSize * num_horiBox; // pixel in width
+int h = pixelSize * num_vertBox; // pixel in height
 
-int direction;
-bool shoot = false;
+int score = 0; // Global score counter
 
-void endGame()
-{
+int direction; // of ship
+bool shoot = false; // is the a bullet being drawn right now?
 
-}
-
-// Building the ship
-
+// Defining the ship
 struct spaceship
 {
-    int x, y = h - size;
+    // ship can only move on x axis, y is fixed
+    int x, y = h - pixelSize;
 
 }ship;
 
@@ -39,30 +29,34 @@ struct spaceship
 void moveShip ()
 {
 
-    // If user presses left
+    // If user presses left, goes left
     if (direction == 1)
     {
-        ship.x -= size;
+        ship.x -= pixelSize;
     }
 
-
-    // If user presses right
+    // If user presses right, goes right
     if (direction == 2)
     {
-        ship.x += size;
+        ship.x += pixelSize;
     }
 
 
-    // Boundary Checking ship as hits screen end, cannot pass
-    if (ship.x + (4* size) > w)
-        ship.x = w - (3 * size);
+    // Boundary Checking ship. If it hits the edge of the window, it cannot pass
+    // Because the ship is not one 't' shaped object but rather the same texture repeated to appear as a 't' shape
+    // the dimensions for checking have to be modified to take into account that what appears to be the right side of
+    // the ship is not the same as ship.x
+    if (ship.x + (4 * pixelSize) > w)
+    {
+        ship.x = w - (3 * pixelSize);
+    }
     if (ship.x < 0)
+    {
         ship.x = 0;
-
+    }
 }
 
-// Building the comet
-
+// Defining the comet
 struct comet
 {
     int x,y;
@@ -71,8 +65,10 @@ struct comet
 
 void newComet()
 {
-    int random = rand() % num_horiBox;
-    random *= size;
+    // randomly generates an x value in a [1, 39] range, catching the two columns the ship can't shoot at because of
+    // its wings
+    int random = rand() % (num_horiBox - 1) + 1;
+    random *= pixelSize;
 
     obstacle.x = random;
     obstacle.y = 0;
@@ -80,50 +76,59 @@ void newComet()
 
 void moveComet ()
 {
+    // Commet moves at 1/4 the speed of a bullet
     obstacle.y +=8;
 
-    // If comet reaches the bottom
+    // If comet reaches the bottom reduce the score and reset the comet
     if (obstacle.y > h)
     {
+        score -= 1;
         newComet();
     }
 }
 
-// Building the bullet
-
+// Defining the bullet
 struct gun
 {
     int x, y;
 
 }projectile;
 
-// Set the initial bullet position to ship's x and y
+// Set the initial bullet position to ship's at-the-moment x and y
 void bulletFired ()
 {
-    projectile.x = ship.x + size;
-    projectile.y = ship.y - size;
+    // Want to set the bullet to the ship's 'nose' which is 16 pixels right and 16 pixels up of ship's x and y
+    projectile.x = ship.x + pixelSize;
+    projectile.y = ship.y - pixelSize;
 
 }
 
 int moveBullet ()
 {
+    // Bullet moves faster than the ship and the comet
     projectile.y -= 32;
 
-    // Bullet and comet are moving at different speeds, so need to adjust for the x's only appearing to be equal
-    // by factoring in a range for the y value
-    if (projectile.x == obstacle.x) // If bullet hit comet
+    // Bullet and comet are moving at different speeds, so need to adjust for the x's only appearing to be equal due
+    // to the computer's refresh rate by factoring in a range for the y value
+    if (projectile.x == obstacle.x) // Check if bullet hit comet 1. Do they have the same x value
     {
-        if ((projectile.y == obstacle.y) || ( (projectile.y - 16 <= obstacle.y) && (obstacle.y <= projectile.y + 16 ) ))
+        // 2. Make sure to reset comet only when the bullet has actually hit it, therefore check for when the y's equal
+        // or are within 16 pixels of each other
+        if ((projectile.y == obstacle.y) || ( (projectile.y - pixelSize <= obstacle.y) && (obstacle.y <= projectile.y + pixelSize ) ))
         {
-            newComet();
+            score += 1;
+            newComet(); // Reset comet
             return 1;
-        } else {
+
+        } else { // If not in that range yet continue drawing bullet and comet
+
             return 3;
         }
-    } else if ((projectile.y < 0)){ // if projectile reaches the end of the screen
+    } else if ((projectile.y < 0)){ // if bullet reaches the end of the screen
+
         return 2;
 
-    } else { // if nothing happens to to projectile
+    } else { // if nothing happens continue to draw bullet and comet
         return 3;
     }
 }
@@ -149,7 +154,24 @@ int main ()
     sf::Sprite comet(t3);
     sf::Sprite bullet(t4);
 
-    // Put comet somewhere
+    //Declare a Font
+    sf::Font MarkerFelt;
+
+    //Load and check the availability of the font file
+    if(!MarkerFelt.loadFromFile("MarkerFelt.ttc"))
+    {
+        std::cout << "Error: can't load font" << std::endl;
+    }
+
+    // Change int score to a string
+    std::string str = std::to_string(score);
+
+    // Create score board
+    sf::Text scoreBoard("Score: " + str, MarkerFelt);
+    scoreBoard.setCharacterSize(50);
+    scoreBoard.setFillColor(sf::Color::White);
+
+    // Create first comet
     newComet();
 
     sf::Clock clock;
@@ -176,7 +198,7 @@ int main ()
         }
 
         // Control for ship by user
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && shoot == false) // Press up to shoot
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !shoot) // Press up to shoot
         {
             shoot = true;
             bulletFired();
@@ -189,11 +211,10 @@ int main ()
             timer = 0; // reset time
             moveShip(); // move ship 16 pixels forward or backward
 
-
-            if (shoot == true)
+            if (shoot == true) // if the user pressed shoot
             {
 
-                updateBullet = moveBullet();
+                updateBullet = moveBullet(); // See if the bullet hit the edge of a comet
 
                 // If the bullet encounters something, can shoot again
                 if (updateBullet == 1 || updateBullet == 2)
@@ -208,6 +229,7 @@ int main ()
         // Draw in window
         window.clear(); // get rid of all frame
 
+
         // Draw background
         background.setPosition(0,0);
         window.draw(background);
@@ -217,15 +239,14 @@ int main ()
         icon.setPosition (ship.x, ship.y);
         window.draw(icon);
 
-        icon.setPosition (ship.x + size, ship.y);
+        icon.setPosition (ship.x + pixelSize, ship.y);
         window.draw(icon);
 
-        icon.setPosition (ship.x + (2 * size), ship.y);
+        icon.setPosition (ship.x + (2 * pixelSize), ship.y);
         window.draw(icon);
 
-        icon.setPosition (ship.x + size , ship.y - size);
+        icon.setPosition (ship.x + pixelSize , ship.y - pixelSize);
         window.draw(icon);
-
 
         // Draw bullet
         if (shoot == true)
@@ -238,20 +259,9 @@ int main ()
         comet.setPosition(obstacle.x, obstacle.y);
         window.draw(comet);
 
-        // Work out kinks to display game over
-        /*
-        sf::Text finalMessage;
-
-        finalMessage.setString("Game Over");
-        finalMessage.setCharacterSize(300); // in pixels, not points!
-        finalMessage.setFillColor(sf::Color::Black);
-        finalMessage.setStyle(sf::Text::Bold);
-        finalMessage.setPosition(200, 200);
-
-        window.draw(finalMessage);
-
-         */
-
+        std::string str = std::to_string(score);
+        scoreBoard.setString("Score: " + str);
+        window.draw(scoreBoard);
 
         window.display();
 
