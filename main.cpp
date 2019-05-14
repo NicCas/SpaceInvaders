@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cert-msc32-c"
 // Final game
 
 #include <SFML/Graphics.hpp>
