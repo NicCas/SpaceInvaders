@@ -9,6 +9,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <time.h>
+#include<iostream>
 
 // sf = std for this library
 
@@ -88,12 +89,11 @@ void bulletFired ()
 
 }
 
-
 int continueBullet ()
 {
     projectile.y -= 16;
 
-    if ((projectile.x == obstacle.x) && (projectile.y == obstacle.y)) // If comet gets hit
+    if ((projectile.x == obstacle.x) && (projectile.y == obstacle.y)) // If bullet hit comet
     {
         newComet();
         return 1;
@@ -154,29 +154,37 @@ int main ()
         }
 
         // Control for ship by user
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && shoot == false)
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && shoot == false) // Press up to shoot
         {
+            std::cout << "Bullet Fired" << std::endl;
             shoot = true;
             bulletFired();
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) direction = 1;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) direction = 2;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) direction = 1; // move ship left
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) direction = 2; // move ship right
 
         if (timer > delay)
         {
             timer = 0; // reset time
-            move(); // move snake one forward
+            move(); // move ship 16 pixels forward or backward
 
 
             if (shoot == true)
             {
+                std::cout << "Shoot == true" << std::endl;
+                std::cout << "Ship x = " << ship.x << ", bullet x = " << projectile.x << ", bullet y = " << projectile.y<< std::endl;
                 updateBullet = continueBullet();
+                std::cout << "Ship x = " << ship.x << ", new bullet x = " << projectile.x << ", new bullet y = " << projectile.y<< std::endl;
 
                 // If the bullet encounters something, can shoot again
                 if (updateBullet == 1 || updateBullet == 2)
                 {
                     shoot = false;
                 }
+                std::cout << "If shoot statement worked" << std::endl;
+            } else {
+                std::cout << "Error in shoot statment" << std::endl;
+
             }
         }
 
@@ -203,12 +211,14 @@ int main ()
 
 
         // Draw bullet
-        shoot = continueBullet();
         if (shoot == true)
         {
+            std::cout << "Should draw" << std::endl;
 
             bullet.setPosition (projectile.x, projectile.y);
             window.draw(bullet);
+        } else {
+            std::cout << "Error in draw bullet if statement" << std::endl;
         }
 
         /*
