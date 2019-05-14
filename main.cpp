@@ -21,7 +21,7 @@ bool shoot = false; // is the a bullet being drawn right now?
 struct spaceship
 {
     // ship can only move on x axis, y is fixed
-    int x, y = h - pixelSize;
+    int x = 0, y = h - pixelSize;
 
 }ship;
 
@@ -135,11 +135,11 @@ int moveBullet ()
 
 int main ()
 {
-    //Setting pseudorandom time, TODO:discuss true random vs pseudorandom
+    //Setting pseudorandom time,
     srand(time(0));
 
     // Window we can play
-    sf::RenderWindow window (sf::VideoMode(w,h), "Space Invadors");
+    sf::RenderWindow window (sf::VideoMode(w,h), "Space Invaders");
 
     // Textures load image into the GPU
     sf::Texture t1, t2, t3, t4;
@@ -211,7 +211,7 @@ int main ()
             timer = 0; // reset time
             moveShip(); // move ship 16 pixels forward or backward
 
-            if (shoot == true) // if the user pressed shoot
+            if (shoot) // if the user pressed shoot
             {
 
                 updateBullet = moveBullet(); // See if the bullet hit the edge of a comet
@@ -229,13 +229,11 @@ int main ()
         // Draw in window
         window.clear(); // get rid of all frame
 
-
         // Draw background
         background.setPosition(0,0);
         window.draw(background);
 
-
-        //draw ship
+        //draw ship's four boxes to make up 't'shape
         icon.setPosition (ship.x, ship.y);
         window.draw(icon);
 
@@ -249,7 +247,7 @@ int main ()
         window.draw(icon);
 
         // Draw bullet
-        if (shoot == true)
+        if (shoot)
         {
             bullet.setPosition (projectile.x, projectile.y);
             window.draw(bullet);
@@ -259,10 +257,14 @@ int main ()
         comet.setPosition(obstacle.x, obstacle.y);
         window.draw(comet);
 
+        // Update score board
         std::string str = std::to_string(score);
         scoreBoard.setString("Score: " + str);
+
+        // Draw score board
         window.draw(scoreBoard);
 
+        // Display it all
         window.display();
 
 
