@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cert-msc32-c"
 // Final game
 
 #include <SFML/Graphics.hpp>
@@ -78,7 +76,7 @@ void newComet()
 
 void moveComet ()
 {
-    // Commet moves at 1/4 the speed of a bullet
+    // Commet moves at a fraction the speed of a bullet
     obstacle.y +=8;
 
     // If comet reaches the bottom reduce the score and reset the comet
@@ -108,15 +106,15 @@ void bulletFired ()
 int moveBullet ()
 {
     // Bullet moves faster than the ship and the comet
-    projectile.y -= 32;
+    projectile.y -= 48;
 
     // Bullet and comet are moving at different speeds, so need to adjust for the x's only appearing to be equal due
     // to the computer's refresh rate by factoring in a range for the y value
     if (projectile.x == obstacle.x) // Check if bullet hit comet 1. Do they have the same x value
     {
         // 2. Make sure to reset comet only when the bullet has actually hit it, therefore check for when the y's equal
-        // or are within 16 pixels of each other
-        if ((projectile.y == obstacle.y) || ( (projectile.y - pixelSize <= obstacle.y) && (obstacle.y <= projectile.y + pixelSize ) ))
+        // or are within 32 pixels of each other
+        if ( (projectile.y - 2 * pixelSize <= obstacle.y) && (obstacle.y <= projectile.y + 2 * pixelSize ) )
         {
             score += 1;
             newComet(); // Reset comet
@@ -144,7 +142,7 @@ int main ()
     sf::RenderWindow window (sf::VideoMode(w,h), "Space Invaders");
 
     // Textures load image into the GPU
-    sf::Texture t1, t2, t3, t4;
+    sf::Texture t1, t2, t3, t4, t5;
     t1.loadFromFile("images/blue.jpg");
     t2.loadFromFile("images/red.png");
     t3.loadFromFile("images/brown.png");
@@ -268,8 +266,5 @@ int main ()
 
         // Display it all
         window.display();
-
-
     }
-
 }
